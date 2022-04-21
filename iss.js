@@ -1,3 +1,4 @@
+const request = require("request");
 /**
  * Makes a single API request to retrieve the user's IP address.
  * Input:
@@ -6,8 +7,6 @@
  *   - An error, if any (nullable)
  *   - The IP address as a string (null if error). Example: "162.245.144.188"
  */
-
-const request = require("request");
 
 const fetchMyIP = function(callback) {
   // use request to fetch IP address from JSON API
@@ -30,4 +29,31 @@ const fetchMyIP = function(callback) {
   });
 };
 
-module.exports = { fetchMyIP };
+/**
+ * Makes a single API request to retrieve latitude and longitude coordinates based on IP address.
+ * Input:
+ *   - 2 arguments: ip (string) and callback
+ */
+
+const fetchCoordsByIP = function(ip, callback) {
+  request(`https://freegeoip.app/json/${ip}`, (error, response, body) => {
+    if (error) {
+      callback(error);
+    }
+
+    // if non-200 status, assume server error
+    if (response.statusCode !== 200) {
+      const msg = `Status Code ${response.statusCode} when fetching coordinates ${body}`;
+      callback(Error(msg), null);
+      return;
+    }
+
+    // destructuring the body object to just extract longitude and latitude
+    const { longitude, latitude } = JSON.parse(body);
+    callback(error, {longitude, latitude });
+  });
+};
+
+
+
+module.exports = { fetchMyIP, fetchCoordsByIP };
